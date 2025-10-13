@@ -1,39 +1,35 @@
-const express = require('express');
+const express = require("express");
+const path = require("path");
+
+// Routers
+const artistsRouter = require("./modules/artists/routes/artists.routes");
+
+// App-level middlewares
+const notFound = require("./middlewares/notFound");
+const errorHandler = require("./middlewares/errorHandler");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "localhost";
 
+// Parse request bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// --- Artists ---
-app.get('/artists', (req, res) => {
-  const { genre, country, popularity } = req.query;
-  res.json({ message: 'List artists (dummy)', genre, country, popularity });
+// Mount feature routers
+app.use("/api/artists", artistsRouter);
+
+// Health check
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({ ok: true, service: "music-artist-classification-api" });
 });
 
-app.get('/artists/:id', (req, res) => {
-  res.json({ message: `Artist details for ${req.params.id}` });
+// 404 (after routes)
+app.use(notFound);
+
+// Centralized error handler
+app.use(errorHandler);
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server running at http://${HOST}:${PORT}`);
 });
-
-app.post('/artists', (req, res) => {
-  res.status(201).json({ message: 'Artist created (dummy)', data: req.body });
-});
-
-app.put('/artists/:id', (req, res) => {
-  res.json({ message: `Artist ${req.params.id} classification updated (dummy)`, data: req.body });
-});
-
-app.delete('/artists/:id', (req, res) => {
-  res.json({ message: `Artist ${req.params.id} deleted (dummy)` });
-});
-
-// --- Classifications ---
-app.get('/classifications', (req, res) => res.json({ message: 'List classifications (dummy)' }));
-app.post('/classifications', (req, res) => res.json({ message: 'Add classification (dummy)', data: req.body }));
-
-// --- Auth / Users (dummy) ---
-app.post('/auth/signup', (req, res) => res.status(201).json({ message: 'Signup (dummy)', data: req.body }));
-app.post('/auth/login', (req, res) => res.json({ message: 'Login (dummy)', token: 'fake-jwt-token' }));
-app.get('/users/:id/favorites', (req, res) => res.json({ message: `Favorites for ${req.params.id}`, favorites: [] }));
-app.post('/users/:id/favorites', (req, res) => res.json({ message: `Added favorite for ${req.params.id}`, data: req.body }));
-
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

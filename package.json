@@ -1,19 +1,20 @@
 {
-  "name": "music_classification",
+  "name": "music-artist-classification",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Phase 2 - Modular Express.js backend using JSON files as data source.",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
+    "dev": "nodemon server.js",
     "start": "node server.js",
-    "dev": "npx nodemon server.js"
+    "lint": "echo \"(optional) add eslint later\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^4.19.2",
+    "express-validator": "^7.2.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.4"
   }
 }
