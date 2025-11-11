@@ -1,42 +1,58 @@
-# Music Artist Classification — Phase 2 (Modular Express Backend)
+In Phase 3, we connected the existing MusicArtistClassification backend to MongoDB Atlas using Mongoose and completed the modular architecture:
 
-**Due:** Oct 15, 2025  
-**Owner:** Angela Lauraine Djiofack Kuemene
+### Database & Connection
 
-## Objective
-Design data structures, add sample data, and implement a modular Express.js backend with CRUD models, modular routes, route-level validation, and app-level middlewares. (Continuation of Phase 1 proposal.)
+- Created a new database **MusicArtistClassification** and an **artists** collection inside the existing Atlas cluster `CPAN212-AngelaDjiofack`.
+- Configured a `.env` file with `DB_URL` and `PORT`.
+- Implemented a reusable MongoDB connection middleware:
+  - `modules/artists/middlewares/connect-db.js` (uses Mongoose and dotenv).
+  - Middleware is applied in `server.js` so it runs for all API routes.
 
-## What’s Implemented
-- **Feature-based modules**: `modules/artists/`
-  - `models/` → All CRUD/business logic using JSON file as data source
-  - `routes/` → Express Router with independent endpoints
-  - `middlewares/` → `express-validator` rules per feature
-- **Data source**: `data/artists.json` with 15 seed records
-- **App-level middlewares**:
-  - `express.json()` and `express.urlencoded()`
-  - `middlewares/notFound.js` → 404 handler
-  - `middlewares/errorHandler.js` → central error handler (500)
-- **Validation** with `express-validator`:
-  - `POST /api/artists` and `PUT /api/artists/:id`
-  - Required fields, types, and constraints (score 0–100, imageUrl URL, etc.)
-- **HTTP responses**:
-  - `200 OK` → GET/PUT/DELETE
-  - `201 Created` → POST
-  - `400 Bad Request` → validation errors
-  - `404 Not Found` → missing resource
-  - `500 Internal Server Error` → server errors
-- **Testing**: curl commands + compatible with Postman/Insomnia
-- **Tech**: Node 22.x (CommonJS), Express 4, express-validator, uuid, nodemon
+### Mongoose Models & CRUD Logic
 
-## Endpoints
-- `GET /api/artists?genre=&country=&q=`
-- `GET /api/artists/:id`
-- `POST /api/artists`
-- `PUT /api/artists/:id`
-- `DELETE /api/artists/:id`
+- Created a Mongoose schema/model for artists in:
+  - `modules/artists/models/artists.model.js`
+- The model schema matches the Phase 2 JSON structure:
+  - `name`, `genres`, `country`, `debut_year`, `years_active`, `popularity_score`, `popularity_level`, `label`, `avg_tempo`, `bio`, `imageUrl`, `createdAt`.
+- Implemented CRUD + query functions:
+  - `getAllArtists(filters, options)` – supports search/filter, sort, and pagination.
+  - `getArtistById(id)`
+  - `createArtist(data)`
+  - `updateArtist(id, data)`
+  - `deleteArtist(id)`
 
-## How to Run
-```bash
-npm install
-npm run dev
-# open http://localhost:3000
+### Routes & Modular Architecture
+
+- Artists module routes:
+  - `modules/artists/routes/artists.routes.js`
+- Endpoints:
+  - `GET /artists` – list with optional filters: `genre`, `country`, `minPopularity`, plus `sortBy`, `order`, `page`, and `limit`.
+  - `GET /artists/:id` – get a single artist by MongoDB `_id`.
+  - `POST /artists` – create a new artist.
+  - `PUT /artists/:id` – update an existing artist.
+  - `DELETE /artists/:id` – delete an artist.
+- All business logic is handled inside the model functions (no business logic in routes).
+
+### Validation & Error Handling
+
+- Route-level validation with `express-validator`:
+  - `modules/artists/middlewares/artists.validation.js`
+  - `modules/artists/middlewares/handleValidation.js`
+- Validations:
+  - `name` is required.
+  - `genres` must be a non-empty array.
+  - `country` is required.
+  - `popularity_score` must be between 0 and 100 (if provided).
+- Application-level middlewares (in `middlewares/`):
+  - `notFound.js` – returns 404 JSON when a route does not exist.
+  - `errorHandler.js` – logs errors and returns a 500 JSON response.
+
+### Testing
+
+- All routes were tested using Postman:
+  - `GET /artists`
+  - `GET /artists?genre=R&B&minPopularity=60`
+  - `POST /artists` (valid & invalid data to confirm validation).
+  - `PUT /artists/:id`
+  - `DELETE /artists/:id`
+- Verified correct HTTP status codes for success, validation errors, missing resources, and server errors.

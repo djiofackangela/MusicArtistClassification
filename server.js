@@ -1,35 +1,29 @@
+// server.js
+require("dotenv").config();
+
 const express = require("express");
-const path = require("path");
+const app = express();
 
-// Routers
-const artistsRouter = require("./modules/artists/routes/artists.routes");
-
-// App-level middlewares
+const connectDb = require("./modules/artists/middlewares/connect-db");
+const artistRoutes = require("./modules/artists/routes/artists.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 
-const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "localhost";
 
-// Parse request bodies
+// Parse JSON bodies
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Mount feature routers
-app.use("/api/artists", artistsRouter);
+// Connect to MongoDB for every request (lazy singleton inside the middleware)
+app.use(connectDb);
 
-// Health check
-app.get("/api/health", (_req, res) => {
-  res.status(200).json({ ok: true, service: "music-artist-classification-api" });
-});
+// Mount artists module
+app.use("/artists", artistRoutes);
 
-// 404 (after routes)
+// 404 + error handlers
 app.use(notFound);
-
-// Centralized error handler
 app.use(errorHandler);
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}`);
+app.listen(PORT, () => {
+  console.log(` Server running on http://localhost:${PORT}`);
 });

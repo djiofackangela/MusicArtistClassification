@@ -1,101 +1,100 @@
-const { v4: uuid } = require("uuid");
-const { readJson, writeJson } = require("../../../utils/fileDb");
+// modules/artists/models/artistModel.js
+const mongoose = require("mongoose");
 
-const FILE = "artists.json";
-
-function toLevel(score) {
-  if (score >= 95) return "Legendary";
-  if (score >= 85) return "Superstar";
-  if (score >= 75) return "Star";
-  if (score >= 60) return "Rising";
-  return "Emerging";
-}
-
-async function getAllArtists({ genre, country, q }) {
-  const data = await readJson(FILE);
-  let result = data;
-
-  if (genre) {
-    const g = genre.toLowerCase();
-    result = result.filter(a => (a.genres || []).some(x => String(x).toLowerCase() === g));
+const artistSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    genres: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: (arr) => arr.length > 0,
+        message: "At least one genre is required"
+      }
+    },
+    country: { type: String, required: true, trim: true },
+    debut_year: { type: Number },
+    years_active: { type: String },
+    popularity_score: { type: Number, min: 0, max: 100 },
+    popularity_level: {
+      type: String,
+      enum: ["Emerging", "Mainstream", "Legendary"],
+      default: "Emerging"
+    },
+    label: { type: String },
+    avg_tempo: { type: Number },
+    bio: { type: String },
+    imageUrl: { type: String },
+    createdAt: { type: Date, default: Date.now }
+  },
+  {
+    collection: "artists"
   }
-  if (country) {
-    const c = country.toLowerCase();
-    result = result.filter(a => String(a.country).toLowerCase().includes(c));
+);
+
+const Artist = mongoose.model("Artist", artistSchema);
+
+// ===== CRUD + QUERY FUNCTIONS =====
+
+// filters: { genre, country, minPopularity }
+// options: { page, limit, sortBy, order }
+async function getAllArtists(filters = {}, options = {}) {
+  const query = {};
+
+  if (filters.genre) {
+    query.genres = filters.genre;
   }
-  if (q) {
-    const s = q.toLowerCase();
-    result = result.filter(a =>
-      String(a.name).toLowerCase().includes(s) ||
-      String(a.bio || "").toLowerCase().includes(s)
-    );
+  if (filters.country) {
+    query.country = filters.country;
   }
-  return result;
+  if (filters.minPopularity) {
+    query.popularity_score = { $gte: Number(filters.minPopularity) };
+  }
+
+  const page = Number(options.page) || 1;
+  const limit = Number(options.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const sortBy = options.sortBy || "name";
+  const order = options.order === "desc" ? -1 : 1;
+  const sort = { [sortBy]: order };
+
+  const [items, total] = await Promise.all([
+    Artist.find(query).sort(sort).skip(skip).limit(limit),
+    Artist.countDocuments(query)
+  ]);
+
+  return {
+    items,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit)
+  };
 }
 
 async function getArtistById(id) {
-  const data = await readJson(FILE);
-  return data.find(a => a.id === id) || null;
+  return Artist.findById(id);
 }
 
-async function addNewArtist(payload) {
-  const data = await readJson(FILE);
-  const id = uuid();
-
-  const popularityLevel = payload.popularityLevel || toLevel(Number(payload.popularityScore || 0));
-
-  const newArtist = {
-    id,
-    name: payload.name,
-    genres: payload.genres,
-    country: payload.country,
-    popularityScore: Number(payload.popularityScore),
-    popularityLevel,
-    debutYear: Number(payload.debutYear) || null,
-    yearsActive: payload.yearsActive || null,
-    label: payload.label || null,
-    imageUrl: payload.imageUrl || null,
-    bio: payload.bio || null
-  };
-
-  data.push(newArtist);
-  await writeJson(FILE, data);
-  return newArtist;
+async function createArtist(data) {
+  const artist = new Artist(data);
+  return artist.save();
 }
 
-async function updateExistingArtist(id, payload) {
-  const data = await readJson(FILE);
-  const idx = data.findIndex(a => a.id === id);
-  if (idx === -1) return null;
-
-  const current = data[idx];
-  const merged = {
-    ...current,
-    ...payload
-  };
-
-  if (payload.popularityScore != null && (payload.popularityLevel == null)) {
-    merged.popularityLevel = toLevel(Number(payload.popularityScore));
-  }
-
-  data[idx] = merged;
-  await writeJson(FILE, data);
-  return merged;
+async function updateArtist(id, data) {
+  return Artist.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 }
 
 async function deleteArtist(id) {
-  const data = await readJson(FILE);
-  const idx = data.findIndex(a => a.id === id);
-  if (idx === -1) return false;
-  data.splice(idx, 1);
-  await writeJson(FILE, data);
-  return true;
+  return Artist.findByIdAndDelete(id);
 }
 
 module.exports = {
+  Artist,
   getAllArtists,
   getArtistById,
-  addNewArtist,
-  updateExistingArtist,
+  createArtist,
+  updateArtist,
   deleteArtist
 };
