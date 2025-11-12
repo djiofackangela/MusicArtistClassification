@@ -1,4 +1,4 @@
-In Phase 3, we connected the existing MusicArtistClassification backend to MongoDB Atlas using Mongoose and completed the modular architecture:
+In Phase 3, I connected the existing MusicArtistClassification backend to MongoDB Atlas using Mongoose and completed the modular architecture:
 
 ### Database & Connection
 
