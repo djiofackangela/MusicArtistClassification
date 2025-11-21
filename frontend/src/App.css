@@ -1,0 +1,165 @@
+/* ========== GENERAL RESET ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ========== BODY & GLOBAL STYLES ========== */
+body {
+  background: linear-gradient(180deg, #f8f9ff 0%, #f0f2f5 100%);
+  color: #222;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========== HEADER ========== */
+header {
+  background: linear-gradient(90deg, #5c4b99, #845ec2);
+  color: white;
+  padding: 1.2rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+/* ========== NAVIGATION ========== */
+nav a {
+  color: white;
+  text-decoration: none;
+  margin: 0 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #ffeaa7;
+}
+
+/* ========== MAIN LAYOUT ========== */
+main {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ========== PAGE TITLES ========== */
+h2 {
+  color: #4b3869;
+  border-bottom: 3px solid #c8b6ff;
+  padding-bottom: 0.4rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.5rem;
+}
+
+/* ========== ARTIST LIST ========== */
+ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.2rem;
+  padding: 0;
+}
+
+li {
+  background: white;
+  padding: 1rem 1.4rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+}
+
+li strong {
+  color: #4b3869;
+  font-size: 1.1rem;
+}
+
+/* ========== FORMS ========== */
+form {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  gap: 1rem;
+}
+
+label {
+  font-weight: 600;
+  color: #4b3869;
+  margin-bottom: 0.2rem;
+}
+
+input {
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 1rem;
+  transition: border 0.3s ease;
+}
+
+input:focus {
+  border-color: #845ec2;
+  box-shadow: 0 0 5px rgba(132, 94, 194, 0.3);
+}
+
+/* ========== BUTTONS ========== */
+button {
+  background-color: #845ec2;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button:hover {
+  background-color: #5c4b99;
+  transform: scale(1.02);
+}
+
+/* ========== FEEDBACK MESSAGES ========== */
+p {
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+p.success {
+  color: #28a745;
+}
+
+p.error {
+  color: #dc3545;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.4rem;
+  }
+
+  nav a {
+    display: inline-block;
+    margin: 0.5rem 0.8rem;
+  }
+
+  main {
+    padding: 1rem;
+  }
+}
