@@ -1,15 +1,17 @@
-// src/pages/AddArtist.js
+// frontend/src/pages/AddArtist.js
 import React, { useState } from "react";
 import api from "../api";
+import { useAuth } from "../context/AuthContext";
 
 export default function AddArtist() {
   const [form, setForm] = useState({
     name: "",
     genres: "",
     country: "",
-    popularity_score: ""
+    popularity_score: "",
   });
   const [message, setMessage] = useState("");
+  const { auth } = useAuth();
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,7 +21,7 @@ export default function AddArtist() {
     setMessage("");
 
     if (!form.name || !form.genres || !form.country) {
-      setMessage("⚠️ Name, genres and country are required.");
+      setMessage(" Name, genres and country are required.");
       return;
     }
 
@@ -30,53 +32,63 @@ export default function AddArtist() {
         country: form.country,
         popularity_score: form.popularity_score
           ? Number(form.popularity_score)
-          : undefined
+          : undefined,
       });
 
-      setMessage("✅ Artist added successfully!");
+      setMessage(" Artist added successfully!");
       setForm({ name: "", genres: "", country: "", popularity_score: "" });
     } catch (err) {
       console.error(err);
-      setMessage("❌ Failed to add artist.");
+      setMessage(
+        err.response?.data?.message || " Failed to add artist."
+      );
     }
   };
+
+  if (!auth.token) {
+    return <p>You must be logged in as admin to add artists.</p>;
+  }
+  if (auth.role !== "admin") {
+    return <p>Only admin users can add artists.</p>;
+  }
 
   return (
     <div className="page">
       <h2>Add New Artist</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name: </label>
+
+      <form onSubmit={handleSubmit} className="form-card">
+        <label>
+          Name:
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="Artist name"
+            type="text"
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Genres (comma-separated): </label>
+        <label>
+          Genres (comma-separated):
           <input
             name="genres"
             value={form.genres}
             onChange={handleChange}
-            placeholder="R&B, Pop"
+            type="text"
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Country: </label>
+        <label>
+          Country:
           <input
             name="country"
             value={form.country}
             onChange={handleChange}
-            placeholder="Canada"
+            type="text"
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Popularity score (0–100, optional): </label>
+        <label>
+          Popularity score (0–100, optional):
           <input
             name="popularity_score"
             value={form.popularity_score}
@@ -85,12 +97,12 @@ export default function AddArtist() {
             min="0"
             max="100"
           />
-        </div>
+        </label>
 
         <button type="submit">Add Artist</button>
       </form>
 
-      {message && <p>{message}</p>}
+      {message && <p className="info-message">{message}</p>}
     </div>
   );
 }

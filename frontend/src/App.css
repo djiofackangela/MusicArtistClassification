@@ -163,3 +163,70 @@ p.error {
     padding: 1rem;
   }
 }
+.favorite-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.favorite-btn:hover {
+  transform: translateY(-1px);
+}
+/* Overall page container */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Grid of artist cards */
+.cards-grid {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Individual artist card */
+.artist-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.artist-card h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+}
+
+/* Optional: tighten the paragraphs inside cards */
+.artist-card p {
+  margin: 0.1rem 0;
+  font-size: 0.9rem;
+}
+
+/* Favorite button styling */
+.favorite-btn {
+  margin-top: 0.6rem;
+  align-self: flex-start;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  background: #f7e5ff;
+}
+
+.favorite-btn:hover {
+  transform: translateY(-1px);
+}
