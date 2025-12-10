@@ -2,40 +2,38 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  getAllArtists,
-  getArtistById,
-  createArtist,
-  updateArtist,
-  deleteArtist,
-} = require("../models/artists.model");
-
-const { validateArtist } = require("../middlewares/artists.validation");
-const handleValidation = require("../middlewares/handleValidation");
-
+const { Artist } = require("../models/artists.model");
 const authenticate = require("../../users/middlewares/authenticate");
 const requireRole = require("../../users/middlewares/requireRole");
 
-// GET /artists?genre=R&B&country=Canada&minPopularity=60&page=1&limit=10&sortBy=popularity_score&order=desc
+// GET /artists  -> paginated list
 router.get("/", async (req, res, next) => {
   try {
-    const { genre, country, minPopularity, page, limit, sortBy, order } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
 
-    const result = await getAllArtists(
-      { genre, country, minPopularity },
-      { page, limit, sortBy, order }
-    );
+    const [items, total] = await Promise.all([
+      Artist.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Artist.countDocuments(),
+    ]);
 
-    res.json(result);
+    res.json({
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /artists/:id
+// GET /artists/:id  -> single artist by id
 router.get("/:id", async (req, res, next) => {
   try {
-    const artist = await getArtistById(req.params.id);
+    const artist = await Artist.findById(req.params.id);
     if (!artist) {
       return res.status(404).json({ message: "Artist not found" });
     }
@@ -45,55 +43,69 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-// POST /artists  (ADMIN ONLY)
-router.post(
-  "/",
-  authenticate,
-  requireRole("admin"),
-  validateArtist,
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const created = await createArtist(req.body);
-      res.status(201).json(created);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+// POST /artists  -> create artist (ADMIN ONLY)
+router.post("/", authenticate, requireRole("admin"), async (req, res, next) => {
+  try {
+    const artist = new Artist({
+      name: req.body.name,
+      genres: req.body.genres || [],
+      country: req.body.country,
+      popularity_score: req.body.popularity_score,
+      imageUrl: req.body.imageUrl,
+      sampleSongTitle: req.body.sampleSongTitle,
+      audioPreviewUrl: req.body.audioPreviewUrl,
+      description: req.body.description,
+    });
 
-// PUT /artists/:id  (ADMIN ONLY)
-router.put(
-  "/:id",
-  authenticate,
-  requireRole("admin"),
-  validateArtist,
-  handleValidation,
-  async (req, res, next) => {
-    try {
-      const updated = await updateArtist(req.params.id, req.body);
-      if (!updated) {
-        return res.status(404).json({ message: "Artist not found" });
-      }
-      res.json(updated);
-    } catch (err) {
-      next(err);
-    }
+    const saved = await artist.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    next(err);
   }
-);
+});
 
-// DELETE /artists/:id  (ADMIN ONLY)
+// PUT /artists/:id  -> update artist (ADMIN ONLY)
+router.put("/:id", authenticate, requireRole("admin"), async (req, res, next) => {
+  try {
+    const updated = await Artist.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: req.body.name,
+        genres: req.body.genres || [],
+        country: req.body.country,
+        popularity_score: req.body.popularity_score,
+        imageUrl: req.body.imageUrl,
+        sampleSongTitle: req.body.sampleSongTitle,
+        audioPreviewUrl: req.body.audioPreviewUrl,
+        description: req.body.description,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /artists/:id  -> delete artist (ADMIN ONLY)
 router.delete(
   "/:id",
   authenticate,
   requireRole("admin"),
   async (req, res, next) => {
     try {
-      const deleted = await deleteArtist(req.params.id);
+      const deleted = await Artist.findByIdAndDelete(req.params.id);
+
       if (!deleted) {
         return res.status(404).json({ message: "Artist not found" });
       }
-      res.json({ message: "Artist deleted" });
+
+      res.json({ message: "Artist deleted successfully" });
     } catch (err) {
       next(err);
     }
