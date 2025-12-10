@@ -14,48 +14,44 @@ import LoginPage from "./pages/LoginPage";
 import OtpVerifyPage from "./pages/OtpVerifyPage";
 import ProfilePage from "./pages/ProfilePage";
 import FavoritesPage from "./pages/FavoritesPage";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import ArtistDetailPage from "./pages/ArtistDetailPage";
 
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import "./App.css";
 
 // Wrapper for protected routes (requires login, and optionally roles)
 function ProtectedRoute({ children, roles }) {
   const { auth } = useAuth();
 
-  // Not logged in
   if (!auth.token) {
     return <Navigate to="/login" replace />;
   }
 
-  // Role-restricted
   if (roles && !roles.includes(auth.role)) {
-    return <p>You do not have permission to access this page.</p>;
+    return <p className="info-message">You do not have permission to access this page.</p>;
   }
 
   return children;
 }
 
-// Layout with header + nav + main content
 function Layout() {
   const { auth, logout } = useAuth();
 
   return (
     <>
       <header className="app-header">
-        <h1>Music Artist Classification</h1>
+        <span className="app-title">MusicArtistClass</span>
 
         <nav className="nav-links">
           <Link to="/">Home</Link>
-
-          {auth.token && <Link to="/favorites">My Favorites</Link>}
-          {auth.token && <Link to="/profile">My Profile</Link>}
-
+          {auth.token && <Link to="/favorites">Favorites</Link>}
+          {auth.token && <Link to="/profile">Profile</Link>}
           {auth.token && auth.role === "admin" && (
-            <Link to="/add">Add Artist</Link>
+            <Link to="/add" className="primary-chip">
+              Add Artist
+            </Link>
           )}
-
           {!auth.token && <Link to="/login">Login</Link>}
-
           {auth.token && (
             <button className="logout-btn" onClick={logout}>
               Logout
@@ -66,10 +62,13 @@ function Layout() {
 
       <main className="app-main">
         <Routes>
-          {/* Public */}
+          {/* Home list */}
           <Route path="/" element={<ArtistList />} />
 
-          {/* Protected + role restricted (admin) */}
+          {/* Artist detail */}
+          <Route path="/artists/:id" element={<ArtistDetailPage />} />
+
+          {/* Admin add artist */}
           <Route
             path="/add"
             element={
@@ -79,7 +78,7 @@ function Layout() {
             }
           />
 
-          {/* Protected (logged in, any role) */}
+          {/* Favorites & profile */}
           <Route
             path="/favorites"
             element={
@@ -88,7 +87,6 @@ function Layout() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/profile"
             element={
@@ -98,7 +96,7 @@ function Layout() {
             }
           />
 
-          {/* Auth pages */}
+          {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-otp" element={<OtpVerifyPage />} />
 
